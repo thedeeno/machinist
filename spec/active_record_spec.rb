@@ -5,9 +5,11 @@ module MachinistActiveRecordSpecs
   
   class Person < ActiveRecord::Base
     attr_protected :password
+    has_and_belongs_to_many :posts
   end
 
   class Post < ActiveRecord::Base
+    has_and_belongs_to_many :people
     has_many :comments
   end
 
@@ -86,6 +88,29 @@ module MachinistActiveRecordSpecs
     
         it "should set the parent association on the created object" do
           @comment.post.should == @post
+        end
+      end
+      
+      describe "on a has_and_belongs_to_many assocation" do
+        before(:each) do
+          Person.blueprint {}
+          Post.blueprint {}
+          
+          @post = Post.make
+          @people = []
+          5.times { @people << @post.people.make }
+        end
+        
+        it "should create the right amount of children" do
+          @post.people.size.should == 5
+        end
+        
+        it "should save the created objects" do
+          @post.people.each{ |person| person.should_not be_new_record }
+        end
+        
+        it "should set the parent association on the created object" do
+          @people.each {|person| person.posts.first.should == @post }
         end
       end
     end

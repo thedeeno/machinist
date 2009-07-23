@@ -17,4 +17,9 @@ ActiveRecord::Schema.define(:version => 0) do
     t.column :author_id, :integer
     t.column :body, :text
   end
+  
+  create_table :people_posts, :force => true, :id => false do |t|
+    t.column :person_id, :integer
+    t.column :post_id, :integer
+  end
 end

@@ -70,12 +70,18 @@ module Machinist
     end
   end
   
-  module ActiveRecordHasManyExtensions
+  module ActiveRecordAssociationCollectionExtensions
     def make(*args, &block)
-      lathe = Lathe.run(Machinist::ActiveRecordAdapter, self.build, *args)
+     instance = Machinist.nerfed? ? self.build : self.new
+     lathe = Lathe.run(Machinist::ActiveRecordAdapter, instance, *args)
+
       unless Machinist.nerfed?
-        lathe.object.save!
-        lathe.object.reload
+        # We are calling create here instead of build and save because they do not work correctly on habtm associations, this also means we can't call build early
+        created_instance = create! do |instance_to_create| 
+          lathe.object.attributes.each_pair { |method, value| 
+          instance_to_create.send("#{method}=", value) }
+        end
+        lathe.instance_eval { @object = created_instance }
       end
       lathe.object(&block)
     end
@@ -93,6 +99,6 @@ class ActiveRecord::Base
   include Machinist::ActiveRecordExtensions
 end
 
-class ActiveRecord::Associations::HasManyAssociation
-  include Machinist::ActiveRecordHasManyExtensions
+class ActiveRecord::Associations::AssociationCollection
+  include Machinist::ActiveRecordAssociationCollectionExtensions
 end
