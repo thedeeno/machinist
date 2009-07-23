@@ -93,7 +93,7 @@ module MachinistActiveRecordSpecs
       
       describe "on a has_and_belongs_to_many assocation" do
         before(:each) do
-          Person.blueprint {}
+          Person.blueprint { name "Fred" }
           Post.blueprint {}
           
           @post = Post.make
@@ -103,6 +103,7 @@ module MachinistActiveRecordSpecs
         
         it "should create the right amount of children" do
           @post.people.size.should == 5
+          @post.people.each {|person| person.name.should == "Fred" }
         end
         
         it "should save the created objects" do
